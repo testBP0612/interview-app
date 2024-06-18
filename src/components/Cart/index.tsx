@@ -1,17 +1,31 @@
+import { useReducer } from 'react';
+
+import cartReducer, { CartItem, CartActionTypes } from '@/components/Cart/cartReducer';
 import { SHOPPING_THRESHOLD, SHOPPING_COST } from '@/constant/Cart';
 
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
+interface CartProductProps {
+  item: CartItem;
+  onAdd: (id: string) => void;
+  onReduce: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
-const CartItem = ({ item }: { item: CartItem }) => (
+const CartProduct = ({ item, onAdd, onReduce, onRemove }: CartProductProps) => (
   <div>
     <span>{item.name}</span>
     <span>{item.price === 0 ? 'Free item' : item.price.toFixed(2)}</span>
-    <span data-testid={`quantity-${item.id}`}>{item.quantity}</span>
+    <div>
+      <button aria-label={`Add ${item.name}`} onClick={() => onAdd(item.id)}>
+        +
+      </button>
+      <span aria-label={`${item.name} Quantity`}>{item.quantity}</span>
+      <button aria-label={`Reduce ${item.name}`} onClick={() => onReduce(item.id)}>
+        -
+      </button>
+    </div>
+    <button aria-label={`Remove ${item.name}`} onClick={() => onRemove(item.id)}>
+      Remove
+    </button>
   </div>
 );
 
@@ -22,12 +36,32 @@ export interface CartProps {
 }
 
 export default function Cart({ cart }: CartProps) {
+  const [cartData, dispatch] = useReducer(cartReducer, cart.items);
+
+  const handleAddItem = (id: string) => {
+    dispatch({ type: CartActionTypes.ADD_ITEM, payload: { id } });
+  };
+
+  const handleReduceItem = (id: string) => {
+    dispatch({ type: CartActionTypes.REDUCE_ITEM, payload: { id } });
+  };
+
+  const handleRemove = (id: string) => {
+    dispatch({ type: CartActionTypes.REMOVE_ITEM, payload: { id } });
+  };
+
   const subtotal = cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
     <div>
-      {cart.items.map((item) => (
-        <CartItem key={item.id} item={item} />
+      {cartData.map((item) => (
+        <CartProduct
+          key={item.id}
+          item={item}
+          onAdd={handleAddItem}
+          onReduce={handleReduceItem}
+          onRemove={handleRemove}
+        />
       ))}
       <div>
         <span>Subtotal: </span>

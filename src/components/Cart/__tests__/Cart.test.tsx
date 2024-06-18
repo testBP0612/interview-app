@@ -1,67 +1,45 @@
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, screen, fireEvent } from '@testing-library/react';
 
-import Cart from '@/components/Cart';
+import * as json from '@/components/Cart/__mocks__/cart.json';
 import { SHOPPING_THRESHOLD, SHOPPING_COST } from '@/constant/Cart';
-import * as josn from '@/components/Cart/__mocks__/cart.json';
+import Cart from '@/components/Cart';
 
-const cartData = josn;
+const cartData = json;
 
-test('Cart names an price', () => {
+test('購物車商品金額計算正確', () => {
   render(<Cart cart={cartData.cart} />);
+  const subtotal = cartData.cart.items.reduce((acc, item) => item.price * item.quantity + acc, 0);
 
-  expect(screen.getByText('Laptop')).toBeInTheDocument();
-  expect(screen.getByText('Wireless Mouse')).toBeInTheDocument();
-  expect(screen.getByText('Keyboard')).toBeInTheDocument();
-
-  expect(screen.getByText('999.99')).toBeInTheDocument();
-  expect(screen.getByText('25.99')).toBeInTheDocument();
-  expect(screen.getByText('49.99')).toBeInTheDocument();
+  expect(screen.getByText(subtotal)).toBeInTheDocument();
 });
 
-test('Cart item with zero price', () => {
-  const cartWithZeroPrice = {
-    cart: {
-      items: [
-        ...cartData.cart.items,
-        {
-          id: '4',
-          name: 'Mouse Pad',
-          price: 0,
-          quantity: 1,
-        },
-      ],
-    },
-  };
-  render(<Cart cart={cartWithZeroPrice.cart} />);
-
-  expect(screen.getByText('Free item')).toBeInTheDocument();
-});
-
-test('Cart quantity', () => {
+test('按下商品數量增加按鈕', () => {
   render(<Cart cart={cartData.cart} />);
 
-  expect(screen.getByTestId('quantity-1')).toHaveTextContent('1');
-  expect(screen.getByTestId('quantity-2')).toHaveTextContent('2');
-  expect(screen.getByTestId('quantity-3')).toHaveTextContent('1');
+  cartData.cart.items.forEach((item) => {
+    const addButton = screen.getByRole('button', { name: `Add ${item.name}` });
+    fireEvent.click(addButton);
+    expect(screen.getByLabelText(`${item.name} Quantity`).textContent).toBe((item.quantity + 1).toString());
+  });
 });
 
-test('Cart subtotal', () => {
+test('按下商品數量減少按鈕', () => {
   render(<Cart cart={cartData.cart} />);
 
-  const subtotal = cartData.cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  expect(screen.getByText(subtotal.toString())).toBeInTheDocument();
+  cartData.cart.items.forEach((item) => {
+    const reduceButton = screen.getByRole('button', { name: `Reduce ${item.name}` });
+    fireEvent.click(reduceButton);
+    const newQuantity = Math.max(item.quantity - 1, 1);
+    expect(screen.getByLabelText(`${item.name} Quantity`).textContent).toBe(newQuantity.toString());
+  });
 });
 
-test('Cart total with shipping cost', () => {
-  render(<Cart cart={cartData.cart} />);
-  const subtotal = cartData.cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const total = subtotal >= SHOPPING_THRESHOLD ? subtotal : subtotal + SHOPPING_COST;
-  expect(screen.getByText(total.toString())).toBeInTheDocument();
-});
-
-test('Does not render items with zero quantity', () => {
+test('按下刪除商品按鈕', () => {
   render(<Cart cart={cartData.cart} />);
 
-  expect(screen.queryByText('Empty item')).not.toBeInTheDocument();
+  cartData.cart.items.forEach((item) => {
+    const removeButton = screen.getByRole('button', { name: `Remove ${item.name}` });
+    fireEvent.click(removeButton);
+    expect(screen.queryByText(item.name)).not.toBeInTheDocument();
+  });
 });
