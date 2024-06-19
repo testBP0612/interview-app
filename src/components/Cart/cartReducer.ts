@@ -1,9 +1,4 @@
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
+import { CartItem } from '@/components/Cart/cartTypes';
 
 export enum CartActionTypes {
   ADD_ITEM = 'ADD_ITEM',

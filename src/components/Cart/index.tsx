@@ -1,6 +1,7 @@
 import { useReducer } from 'react';
 
-import cartReducer, { CartItem, CartActionTypes } from '@/components/Cart/cartReducer';
+import type { CartItem } from '@/components/Cart/cartTypes';
+import cartReducer, { CartActionTypes } from '@/components/Cart/cartReducer';
 import { SHOPPING_THRESHOLD, SHOPPING_COST } from '@/constant/Cart';
 
 interface CartProductProps {
@@ -65,7 +66,7 @@ export default function Cart({ cart }: CartProps) {
       ))}
       <div>
         <span>Subtotal: </span>
-        <span>{cart.items.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}</span>
+        <span>{subtotal}</span>
         <span>{subtotal >= SHOPPING_THRESHOLD ? 'Free Shipping' : `Shipping Cost: ${SHOPPING_COST}`}</span>
       </div>
     </div>

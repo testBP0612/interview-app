@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
-import * as json from '@/components/Cart/__mocks__/cart.json';
+import json from '@/components/Cart/__mocks__/cart.json';
 import { SHOPPING_THRESHOLD, SHOPPING_COST } from '@/constant/Cart';
 import Cart from '@/components/Cart';
 
@@ -9,8 +9,8 @@ const cartData = json;
 test('購物車商品金額計算正確', () => {
   render(<Cart cart={cartData.cart} />);
   const subtotal = cartData.cart.items.reduce((acc, item) => item.price * item.quantity + acc, 0);
-
-  expect(screen.getByText(subtotal)).toBeInTheDocument();
+  const total = subtotal > SHOPPING_THRESHOLD ? subtotal : subtotal + SHOPPING_COST;
+  expect(screen.getByText(total)).toBeInTheDocument();
 });
 
 test('按下商品數量增加按鈕', () => {
